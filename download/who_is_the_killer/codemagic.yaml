@@ -1,0 +1,139 @@
+# ────────────────────────────────────────────────────────────────
+# Codemagic CI/CD Configuration — Who is the Killer?
+# Automates Android (AAB/APK) and iOS (IPA) release builds.
+# ────────────────────────────────────────────────────────────────
+
+workflows:
+  # ── Android Release Workflow ──────────────────────────────────
+  android-release:
+    name: Android Release Build
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+
+    environment:
+      flutter: stable
+      xcode: latest
+      vars:
+        GOOGLE_PLAY_TRACK: production
+      groups:
+        - google_play_credentials
+        - signing_credentials
+
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
+        - pattern: release/*
+          include: true
+      cancel_previous_builds: true
+
+    scripts:
+      - name: Set up local properties
+        script: echo "flutter.minSdkVersion=21" >> "$CM_BUILD_DIR/android/local.properties"
+
+      - name: Get Flutter packages
+        script: |
+          flutter pub get
+
+      - name: Install code generation dependencies
+        script: |
+          dart run build_runner build --delete-conflicting-outputs
+
+      - name: Run static analysis (zero-warning policy)
+        script: |
+          flutter analyze --no-fatal-infos --no-fatal-warnings
+
+      - name: Run unit tests
+        script: |
+          flutter test --coverage
+
+      - name: Build AAB (Android App Bundle)
+        script: |
+          flutter build appbundle --release \
+            --build-number=$PROJECT_BUILD_NUMBER \
+            --obfuscate \
+            --split-debug-info=build/debug_info
+
+    artifacts:
+      - build/**/outputs/**/*.aab
+      - build/**/outputs/**/*.apk
+      - build/debug_info/**
+      - coverage/lcov.info
+
+    publishing:
+      google_play:
+        credentials: $GOOGLE_PLAY_SERVICE_ACCOUNT_JSON
+        track: $GOOGLE_PLAY_TRACK
+        submit_as_draft: true
+
+  # ── iOS Release Workflow ──────────────────────────────────────
+  ios-release:
+    name: iOS Release Build
+    max_build_duration: 120
+    instance_type: mac_mini_m2
+
+    environment:
+      flutter: stable
+      xcode: latest
+      vars:
+        APP_STORE_CONNECT_ISSUER_ID: $APP_STORE_CONNECT_ISSUER_ID
+        APP_STORE_CONNECT_KEY_IDENTIFIER: $APP_STORE_CONNECT_KEY_IDENTIFIER
+        APP_STORE_CONNECT_PRIVATE_KEY: $APP_STORE_CONNECT_PRIVATE_KEY
+      groups:
+        - app_store_credentials
+        - signing_credentials
+
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
+        - pattern: release/*
+          include: true
+      cancel_previous_builds: true
+
+    scripts:
+      - name: Set up code signing
+        script: |
+          xcode-project use-profiles \
+            --project "$CM_BUILD_DIR/ios/Runner.xcodeproj"
+
+      - name: Get Flutter packages
+        script: |
+          flutter pub get
+
+      - name: Install code generation dependencies
+        script: |
+          dart run build_runner build --delete-conflicting-outputs
+
+      - name: Run static analysis (zero-warning policy)
+        script: |
+          flutter analyze --no-fatal-infos --no-fatal-warnings
+
+      - name: Run unit tests
+        script: |
+          flutter test --coverage
+
+      - name: Build IPA
+        script: |
+          flutter build ipa --release \
+            --build-number=$PROJECT_BUILD_NUMBER \
+            --obfuscate \
+            --split-debug-info=build/debug_info \
+            --export-method app-store
+
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+      - build/debug_info/**
+      - coverage/lcov.info
+
+    publishing:
+      app_store_connect:
+        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
+        key_identifier: $APP_STORE_CONNECT_KEY_IDENTIFIER
+        private_key: $APP_STORE_CONNECT_PRIVATE_KEY
+        submit_to_testflight: true

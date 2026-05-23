@@ -1,0 +1,70 @@
+name: who_is_the_killer
+description: A multiplayer interactive mystery game — "Who is the Killer?" with real-time room sync, ghost voting mechanics, and structured rebellion UI design.
+
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.2.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # ── State Management ──────────────────────────────────────────
+  flutter_riverpod: ^2.5.1
+  riverpod_annotation: ^2.3.5
+
+  # ── Real-time Communication ───────────────────────────────────
+  supabase_flutter: ^2.5.0
+  web_socket_channel: ^2.4.5
+
+  # ── Navigation ────────────────────────────────────────────────
+  go_router: ^14.2.0
+
+  # ── Fonts & Typography ────────────────────────────────────────
+  google_fonts: ^6.2.1
+
+  # ── Vector Icons ──────────────────────────────────────────────
+  font_awesome_flutter: ^10.7.0
+
+  # ── Utilities ─────────────────────────────────────────────────
+  freezed_annotation: ^2.4.3
+  json_annotation: ^4.9.0
+  uuid: ^4.4.0
+  intl: ^0.19.0
+  logger: ^2.4.0
+  fpdart: ^1.1.0
+  equatable: ^2.0.5
+  flutter_animate: ^4.5.0
+  cached_network_image: ^3.3.1
+
+  # ── Local Storage ─────────────────────────────────────────────
+  shared_preferences: ^2.2.3
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  # ── Linting ───────────────────────────────────────────────────
+  flutter_lints: ^4.0.0
+
+  # ── Code Generation ───────────────────────────────────────────
+  build_runner: ^2.4.11
+  freezed: ^2.5.4
+  json_serializable: ^6.8.0
+  riverpod_generator: ^2.4.2
+
+flutter:
+  uses-material-design: true
+
+  fonts:
+    - family: NotoSansArabic
+      fonts:
+        - asset: assets/fonts/NotoSansArabic-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/NotoSansArabic-Regular.ttf
+          weight: 400
