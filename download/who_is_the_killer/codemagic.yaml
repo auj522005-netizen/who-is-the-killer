@@ -69,6 +69,14 @@ workflows:
         submit_as_draft: true
 
   # ── iOS Release Workflow ──────────────────────────────────────
+  # Requires the following environment variables to be set in
+  # Codemagic UI (Settings → Environment variables → Groups):
+  #   Group "app_store_credentials":
+  #     - APP_STORE_CONNECT_ISSUER_ID
+  #     - APP_STORE_CONNECT_KEY_IDENTIFIER
+  #     - APP_STORE_CONNECT_PRIVATE_KEY
+  #   Group "signing_credentials":
+  #     - (Code signing certificates & provisioning profiles)
   ios-release:
     name: iOS Release Build
     max_build_duration: 120
@@ -77,10 +85,6 @@ workflows:
     environment:
       flutter: stable
       xcode: latest
-      vars:
-        APP_STORE_CONNECT_ISSUER_ID: $APP_STORE_CONNECT_ISSUER_ID
-        APP_STORE_CONNECT_KEY_IDENTIFIER: $APP_STORE_CONNECT_KEY_IDENTIFIER
-        APP_STORE_CONNECT_PRIVATE_KEY: $APP_STORE_CONNECT_PRIVATE_KEY
       groups:
         - app_store_credentials
         - signing_credentials
@@ -133,7 +137,7 @@ workflows:
 
     publishing:
       app_store_connect:
-        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
-        key_identifier: $APP_STORE_CONNECT_KEY_IDENTIFIER
-        private_key: $APP_STORE_CONNECT_PRIVATE_KEY
+        issuer_id: ${APP_STORE_CONNECT_ISSUER_ID}
+        key_identifier: ${APP_STORE_CONNECT_KEY_IDENTIFIER}
+        private_key: ${APP_STORE_CONNECT_PRIVATE_KEY}
         submit_to_testflight: true
