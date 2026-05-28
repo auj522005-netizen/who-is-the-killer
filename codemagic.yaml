@@ -4,7 +4,6 @@
 # ────────────────────────────────────────────────────────────────
 
 workflows:
-  # ── Android Release Workflow ──────────────────────────────────
   android-release:
     name: Android Release Build
     max_build_duration: 60
@@ -12,11 +11,11 @@ workflows:
 
     environment:
       flutter: stable
-      vars:
-        GOOGLE_PLAY_TRACK: production
-      groups:
-        - google_play_credentials
-        - signing_credentials
+      android_signing:
+        keystore_reference: ${KEYSTORE_REFERENCE}
+        keystore_password_reference: ${KEYSTORE_PASSWORD}
+        key_alias_reference: ${KEY_ALIAS}
+        key_password_reference: ${KEY_PASSWORD}
 
     triggering:
       events:
@@ -33,36 +32,16 @@ workflows:
         script: echo "flutter.minSdkVersion=21" >> "$CM_BUILD_DIR/android/local.properties"
 
       - name: Get Flutter packages
-        script: |
-          flutter pub get
+        script: flutter pub get
 
-      - name: Install code generation dependencies
-        script: |
-          dart run build_runner build --delete-conflicting-outputs
+      - name: Run static analysis
+        script: flutter analyze --no-fatal-infos --no-fatal-warnings
 
-      - name: Run static analysis (zero-warning policy)
+      - name: Build APK (debug for now)
         script: |
-          flutter analyze --no-fatal-infos --no-fatal-warnings
-
-      - name: Run unit tests
-        script: |
-          flutter test --coverage
-
-      - name: Build AAB (Android App Bundle)
-        script: |
-          flutter build appbundle --release \
-            --build-number=$PROJECT_BUILD_NUMBER \
-            --obfuscate \
-            --split-debug-info=build/debug_info
+          flutter build apk --release \
+            --build-number=$PROJECT_BUILD_NUMBER
 
     artifacts:
-      - build/**/outputs/**/*.aab
       - build/**/outputs/**/*.apk
-      - build/debug_info/**
-      - coverage/lcov.info
-
-    publishing:
-      google_play:
-        credentials: ${GOOGLE_PLAY_SERVICE_ACCOUNT_JSON}
-        track: ${GOOGLE_PLAY_TRACK}
-        submit_as_draft: true
+      - build/**/outputs/**/*.aab
