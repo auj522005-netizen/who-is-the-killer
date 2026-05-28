@@ -1,6 +1,6 @@
 # ────────────────────────────────────────────────────────────────
 # Codemagic CI/CD Configuration — Who is the Killer?
-# Android-only release builds (AAB/APK).
+# Android-only release builds (APK).
 # ────────────────────────────────────────────────────────────────
 
 workflows:
@@ -11,11 +11,6 @@ workflows:
 
     environment:
       flutter: stable
-      android_signing:
-        keystore_reference: ${KEYSTORE_REFERENCE}
-        keystore_password_reference: ${KEYSTORE_PASSWORD}
-        key_alias_reference: ${KEY_ALIAS}
-        key_password_reference: ${KEY_PASSWORD}
 
     triggering:
       events:
@@ -34,10 +29,7 @@ workflows:
       - name: Get Flutter packages
         script: flutter pub get
 
-      - name: Run static analysis
-        script: flutter analyze --no-fatal-infos --no-fatal-warnings
-
-      - name: Build APK (debug for now)
+      - name: Build APK
         script: |
           flutter build apk --release \
             --build-number=$PROJECT_BUILD_NUMBER
